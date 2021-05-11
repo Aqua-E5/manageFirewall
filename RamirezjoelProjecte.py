@@ -3,8 +3,6 @@ from tkinter import ttk
 from subprocess import PIPE, Popen 
 import os
 import paramiko
-#	proces=Popen(['sshpass','-p', contra,'scp',usuari+'@'+IP+':/etc/network/interfaces','.'],
-#		stdout=PIPE,stderr=PIPE, stdin=PIPE)
 
 def menu():
 	root = Tk()
@@ -100,12 +98,18 @@ def conecta():
 
             ssh.load_system_host_keys()
 
-            ssh.connect( hostname = txip.get() , username = tusr.get() , password = txc.get())
+#            ssh.connect( hostname = txip.get() , username = tusr.get() , password = txc.get())
+            ssh.connect( '10.33.140.149',22, 'paco', password = txc.get())
+            sftp = ssh.open_sftp()
+            sftp.put('firewall.sh', '/tmp/firewall.sh')
+            sftp.close()	    
+
 	    # Ejecutar un comando de forma remota capturando entrada, salida y error estándar
-            entrada, salida, error = ssh.exec_command('ls -la')
+            entrada, salida, error = ssh.exec_command('cat /tmp/firewall.sh')
 	    # Mostrar la salida estándar en pantalla
             print(salida.read())
-	    # Cerrar la conexión
+
+            # Cerrar la conexión
             ssh.close()
 
 	except:
