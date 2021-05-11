@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from subprocess import PIPE, Popen 
 import os
-
+import paramiko
 #	proces=Popen(['sshpass','-p', contra,'scp',usuari+'@'+IP+':/etc/network/interfaces','.'],
 #		stdout=PIPE,stderr=PIPE, stdin=PIPE)
 
@@ -24,7 +24,7 @@ def menu():
 	Pmenu = Menu(mb, tearoff=0)
 	Pmenu.add_command(label="Direccions ip")
 	Pmenu.add_command(label="Ports")
-	Pmenu.add_command(label="Domini", command=creacio) #Entendre perque falla
+	Pmenu.add_command(label="Domini") 
 
 	Bmenu = Menu(mb, tearoff=0)
 	Bmenu.add_command(label="Direccions ip")
@@ -49,6 +49,7 @@ def principi(n):
 	global i
 	i = Tk()
 	i.title("Servidor remot")
+	i.geometry("400x350")
 	global txip
 	global txc
 	global tusr
@@ -56,14 +57,17 @@ def principi(n):
 #	if n == 1:
 #		finestra.destroy()
 	ip = Label(i, text="IP: ")
+	ip.pack() 
 	txip = Entry(i,)
 	usr = Label(i, text="Usuari: ")
 	tusr = Entry(i)
 	c = Label(i, text="Contrasenya: ")
 	txc = Entry(i,show="*")
-	ok = Button(i, text="Fet", command=menu)
+	
+	u = txip.get()
+	ok = Button(i, text="Fet", command=conecta)
 
-
+	
 	ip.grid(column=0, row=0, sticky="nsew")
 	txip.grid(column=1, row=0, sticky="nsew")
 	usr.grid(column=0, row=1, sticky="nsew")
@@ -82,6 +86,37 @@ def principi(n):
 
 	i.mainloop()
 
+def conecta():
+	
+	print(txip.get())
+        
+	try:
+
+            # Conectamos por ssh
+
+            ssh = paramiko.SSHClient()
+
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+            ssh.load_system_host_keys()
+
+            ssh.connect( hostname = txip.get() , username = tusr.get() , password = txc.get())
+	    # Ejecutar un comando de forma remota capturando entrada, salida y error estándar
+            entrada, salida, error = ssh.exec_command('ls -la')
+	    # Mostrar la salida estándar en pantalla
+            print(salida.read())
+	    # Cerrar la conexión
+            ssh.close()
+
+	except:
+
+            print('Error en la conexión')
+
+            sys.exit(1)
+	
+
+
+
 ##DNS
 #N="iptables -F"
 #A="iptables -A FORWARD -p tcp -m multiport --dport 80,443,53 -j ACCEPT"
@@ -95,7 +130,7 @@ def principi(n):
 #file.write(B)
 #file.close()
 
-principi(1)
+principi(0)
 
 
 
