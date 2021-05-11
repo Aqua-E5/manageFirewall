@@ -105,10 +105,11 @@ def conecta():
             sftp.close()	    
 
 	    # Ejecutar un comando de forma remota capturando entrada, salida y error estándar
-            entrada, salida, error = ssh.exec_command('cat /tmp/firewall.sh')
+            entrada, salida, error = ssh.exec_command('sudo -S /bin/sh /tmp/firewall.sh')
+            entrada.write(txc.get() + '\n')
 	    # Mostrar la salida estándar en pantalla
             print(salida.read())
-
+            print(error.read())
             # Cerrar la conexión
             ssh.close()
 
