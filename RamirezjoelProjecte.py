@@ -1,13 +1,13 @@
 from tkinter import *
 from tkinter import ttk
-from subprocess import PIPE, Popen 
+import subprocess  
 import os
 import paramiko
 
 def menu(salida):
 	root = Tk()
 	txtPorts = Text(root)
-	txtPorts.insert(END, salida.read())
+	txtPorts.insert(END, salida)
 	txtPorts.config(state=DISABLED)
 	txtPorts.pack() 
 #	mb = Menu(root)
@@ -127,28 +127,31 @@ def conecta():
 # Funcio llista els ports de la maquina 
 def llistaports():
 	
-	#print('bon dia')	
-	ssh = conecta()
-	# Ejecutar un comando de forma remota capturando entrada, salida y error estándar
-	entrada, salida, error = ssh.exec_command("ss -tulpn | grep LISTEN | awk '{print $5}' | cut -d: -f2 | uniq")
-	entrada.write(txc.get() + '\n')
+	portsOberts = subprocess.Popen("nmap -Pn " + txip.get(), stdout=subprocess.PIPE, shell=True) 
+	(salida, err) = portsOberts.communicate()
+	print ("Today is", salida)
 	# Mostrar la salida estándar en pantalla
 	#print(error.read())
 	menu(salida)		
+
 	# Cerrar la conexión
-	ssh.close()
 
 ##DNS
-#N="iptables -F"
-#A="iptables -A FORWARD -p tcp -m multiport --dport 80,443,53 -j ACCEPT"
-#B="iptables -A FORWARD -p udp --dport 53 -j ACCEPT"
-
+N="iptables -F"
+S="iptables -A INPUT -p tcp -m tcp --dport 22 -j ACCEPT"
+A="iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT"
+B="iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT"
+C="iptables -A INPUT -j DROP"
+#A="iptables -A INPUT -p tcp -m multiport --dport 80,443,53 -j ACCEPT"
 
 
 #Escritura
-#file = open("wall.sh","w")
+file = open("firewall.sh","w")
+file.write(N + os.linesep)
+file.write(S + os.linesep)
 #file.write(A + os.linesep)
-#file.write(B)
-#file.close()
+file.write(B + os.linesep)
+file.write(C + os.linesep)
+file.close()
 
 principi(0)
