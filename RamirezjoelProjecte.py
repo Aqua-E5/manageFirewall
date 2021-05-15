@@ -4,41 +4,44 @@ from subprocess import PIPE, Popen
 import os
 import paramiko
 
-def menu():
+def menu(salida):
 	root = Tk()
-
-	mb = Menu(root)
-	root.config(menu=mb)
-
-	S = Menu(mb)
-	Pmenu = Menu(mb)
-	Bmenu = Menu(mb)
-	Hmenu = Menu(mb)
-
-	S = Menu(mb, tearoff=0)
-	S.add_command(label="Intern")
-	S.add_command(label="Extern")
-
-	Pmenu = Menu(mb, tearoff=0)
-	Pmenu.add_command(label="Direccions ip")
-	Pmenu.add_command(label="Ports")
-	Pmenu.add_command(label="Domini") 
-
-	Bmenu = Menu(mb, tearoff=0)
-	Bmenu.add_command(label="Direccions ip")
-	Bmenu.add_command(label="Ports")
-	Bmenu.add_command(label="Domini")
-
-
-	Hmenu = Menu(mb, tearoff=0)
-	Hmenu.add_command(label="Ajuda")
-	Hmenu.add_command(label="Donar")
-	Hmenu.add_command(label="Sorti", command=root.quit)
-
-	mb.add_cascade(label="Permetre",menu=Pmenu)
-	mb.add_cascade(label="Blocar",menu=Bmenu)
-	mb.add_cascade(label="Ajuda",menu=Hmenu)
-
+	txtPorts = Text(root)
+	txtPorts.insert(END, salida.read())
+	txtPorts.config(state=DISABLED)
+	txtPorts.pack() 
+#	mb = Menu(root)
+#	root.config(menu=mb)
+#
+#	S = Menu(mb)
+#	Pmenu = Menu(mb)
+#	Bmenu = Menu(mb)
+#	Hmenu = Menu(mb)
+#
+#	S = Menu(mb, tearoff=0)
+#	S.add_command(label="Intern")
+#	S.add_command(label="Extern")
+#
+#	Pmenu = Menu(mb, tearoff=0)
+#	Pmenu.add_command(label="Direccions ip")
+#	Pmenu.add_command(label="Ports")
+#	Pmenu.add_command(label="Domini") 
+#
+#	Bmenu = Menu(mb, tearoff=0)
+#	Bmenu.add_command(label="Direccions ip")
+#	Bmenu.add_command(label="Ports")
+#	Bmenu.add_command(label="Domini")
+#
+#
+#	Hmenu = Menu(mb, tearoff=0)
+#	Hmenu.add_command(label="Ajuda")
+#	Hmenu.add_command(label="Donar")
+#	Hmenu.add_command(label="Sorti", command=root.quit)
+#
+#	mb.add_cascade(label="Permetre",menu=Pmenu)
+#	mb.add_cascade(label="Blocar",menu=Bmenu)
+#	mb.add_cascade(label="Ajuda",menu=Hmenu)
+#
 	root.mainloop()
 
 
@@ -64,7 +67,8 @@ def principi(n):
 	
 	u = txip.get()
 	ok = Button(i, text="Fet", command=conecta)
-
+	ports = Button(i, text='Ports oberts', command=llistaports) 
+		
 	
 	ip.grid(column=0, row=0, sticky="nsew")
 	txip.grid(column=1, row=0, sticky="nsew")
@@ -72,7 +76,8 @@ def principi(n):
 	tusr.grid(column=1, row=1, sticky="nsew")
 	c.grid(column=0, row=2, sticky="nsew")
 	txc.grid(column=1, row=2, sticky="nsew")
-	ok.grid(column=0, row=3, sticky="nsew", columnspan=2)
+	ok.grid(column=0, row=3, sticky="nsew")
+	ports.grid(column=1, row=3, sticky="nsew")
 
 	Grid.rowconfigure(i, 0, weight=1)
 	Grid.rowconfigure(i, 1, weight=1)
@@ -86,8 +91,6 @@ def principi(n):
 
 def conecta():
 	
-	print(txip.get())
-        
 	try:
 
             # Conectamos por ssh
@@ -108,19 +111,32 @@ def conecta():
             entrada, salida, error = ssh.exec_command('sudo -S /bin/sh /tmp/firewall.sh')
             entrada.write(txc.get() + '\n')
 	    # Mostrar la salida estándar en pantalla
-            print(salida.read())
-            print(error.read())
+            #print(salida.read())
+            #print(error.read())
             # Cerrar la conexión
-            ssh.close()
-
+            # ssh.close()
+            return ssh
+	     		
 	except:
 
-            print('Error en la conexión')
+            #print('Error en la conexión')
 
             sys.exit(1)
 	
 
-
+# Funcio llista els ports de la maquina 
+def llistaports():
+	
+	#print('bon dia')	
+	ssh = conecta()
+	# Ejecutar un comando de forma remota capturando entrada, salida y error estándar
+	entrada, salida, error = ssh.exec_command("ss -tulpn | grep LISTEN | awk '{print $5}' | cut -d: -f2 | uniq")
+	entrada.write(txc.get() + '\n')
+	# Mostrar la salida estándar en pantalla
+	#print(error.read())
+	menu(salida)		
+	# Cerrar la conexión
+	ssh.close()
 
 ##DNS
 #N="iptables -F"
@@ -130,18 +146,9 @@ def conecta():
 
 
 #Escritura
-#file = open("/home/paco/firewall.sh","w")
+#file = open("wall.sh","w")
 #file.write(A + os.linesep)
 #file.write(B)
 #file.close()
 
 principi(0)
-
-
-
-
-
-
-
-
-
