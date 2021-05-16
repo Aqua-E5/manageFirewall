@@ -136,12 +136,19 @@ def llistaports():
 
 
 def obrirPort(port):
-	
+		#Obrim el fitxer amb mode lectura (read)	
 	with open("firewall.sh", "r") as file:
 		lines = file.readlines()	
-	lines[1] = "iptables -A INPUT -p tcp -m tcp --dport " + port  +  " -j ACCEPT" + os.linesep
 
+		#Obrim el fitxer amb mode  escritura (write)	
 	with open("firewall.sh", "w") as file:
+		for l in range(len(lines),1,-1):
+			if l == len(lines):
+				lines.append(lines[l-1]) 
+			else:
+				lines[l] = lines[l-1]	
+				print(lines[l])
+		lines[1] = "iptables -A INPUT -p tcp -m tcp --dport " + port  +  " -j ACCEPT" + os.linesep
 		for line in lines:
 			file.write(line)
 def crearFicher():
