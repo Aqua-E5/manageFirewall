@@ -104,22 +104,18 @@ def conecta():
 #            ssh.connect( hostname = txip.get() , username = tusr.get() , password = txc.get())
             ssh.connect( '10.33.140.149',22, 'paco', password = txc.get())
             sftp = ssh.open_sftp()
-            obrirPort('22')
+            obrirPort('80')
             sftp.put('firewall.sh', '/tmp/firewall.sh')
             sftp.close()	    
 	    # Ejecutar un comando de forma remota capturando entrada, salida y error estándar
             entrada, salida, error = ssh.exec_command('sudo -S /bin/sh /tmp/firewall.sh')
             entrada.write(txc.get() + '\n')
 	    # Mostrar la salida estándar en pantalla
-            #print(salida.read())
-            #print(error.read())
             # Cerrar la conexión
             # ssh.close()
             return ssh
 	     		
 	except:
-
-            #print('Error en la conexión')
 
             sys.exit(1)
 	
@@ -129,37 +125,36 @@ def llistaports():
 	
 	portsOberts = subprocess.Popen("nmap -Pn " + txip.get(), stdout=subprocess.PIPE, shell=True) 
 	(salida, err) = portsOberts.communicate()
-	print ("Today is", salida)
 	# Mostrar la salida estándar en pantalla
-	#print(error.read())
 	menu(salida)		
 
 
 def obrirPort(port):
-		#Obrim el fitxer amb mode lectura (read)	
-	with open("firewall.sh", "r") as file:
-		lines = file.readlines()	
-
-		#Obrim el fitxer amb mode  escritura (write)	
-	with open("firewall.sh", "w") as file:
-		for l in range(len(lines),1,-1):
-			if l == len(lines):
-				lines.append(lines[l-1]) 
-			else:
-				lines[l] = lines[l-1]	
-				print(lines[l])
-		lines[1] = "iptables -A INPUT -p tcp -m tcp --dport " + port  +  " -j ACCEPT" + os.linesep
-		for line in lines:
-			file.write(line)
+	if comprovarPort(port) == False:
+		# Obrim el fitxer amb mode lectura (read)	
+		with open("firewall.sh", "r") as file:
+			lines = file.readlines()	
+	
+		# Obrim el fitxer amb mode  escritura (write)	
+		with open("firewall.sh", "w") as file:
+			for l in range(len(lines),1,-1):
+				if l == len(lines):
+					lines.append(lines[l-1]) 
+				else:
+					lines[l] = lines[l-1]	
+			lines[1] = "iptables -A INPUT -p tcp -m tcp --dport " + port  +  " -j ACCEPT" + os.linesep
+			for line in lines:
+				file.write(line)
 def crearFicher():
 	
 	if os.path.isfile('firewall.sh'):
-		print('Existeix firewall.sh')	
+		
+		print('Ja existeix')
 	else:
 		N="iptables -F"
 		B="iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT"
 		C="iptables -A INPUT -j DROP"
-		
+				
 		#Escritura
 		file = open("firewall.sh","w")
 		file.write(N + os.linesep)
@@ -167,4 +162,20 @@ def crearFicher():
 		file.write(C + os.linesep)
 		file.close()
 
+def comprovarPort(port):	
+	
+	# Obrim el fitxer amb mode lectura (read)	
+	with open("firewall.sh", "r") as file:
+		lines = file.readlines()	
+
+		for line in lines:
+			if port in line:
+				return True
+	return False		
+
 principi(0)
+
+
+
+
+
