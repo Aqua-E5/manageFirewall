@@ -86,13 +86,13 @@ def principi(n):
 	Grid.columnconfigure(i, 0, weight=1)
 	Grid.columnconfigure(i, 1, weight=1)
 
-
+	crearFicher()
 	i.mainloop()
-
+	
 def conecta():
 	
 	try:
-
+ 
             # Conectamos por ssh
 
             ssh = paramiko.SSHClient()
@@ -104,9 +104,9 @@ def conecta():
 #            ssh.connect( hostname = txip.get() , username = tusr.get() , password = txc.get())
             ssh.connect( '10.33.140.149',22, 'paco', password = txc.get())
             sftp = ssh.open_sftp()
+            obrirPort('22')
             sftp.put('firewall.sh', '/tmp/firewall.sh')
             sftp.close()	    
-
 	    # Ejecutar un comando de forma remota capturando entrada, salida y error estándar
             entrada, salida, error = ssh.exec_command('sudo -S /bin/sh /tmp/firewall.sh')
             entrada.write(txc.get() + '\n')
@@ -134,24 +134,30 @@ def llistaports():
 	#print(error.read())
 	menu(salida)		
 
-	# Cerrar la conexión
 
-##DNS
-N="iptables -F"
-S="iptables -A INPUT -p tcp -m tcp --dport 22 -j ACCEPT"
-A="iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT"
-B="iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT"
-C="iptables -A INPUT -j DROP"
-#A="iptables -A INPUT -p tcp -m multiport --dport 80,443,53 -j ACCEPT"
+def obrirPort(port):
+	
+	with open("firewall.sh", "r") as file:
+		lines = file.readlines()	
+	lines[1] = "iptables -A INPUT -p tcp -m tcp --dport " + port  +  " -j ACCEPT" + os.linesep
 
-
-#Escritura
-file = open("firewall.sh","w")
-file.write(N + os.linesep)
-file.write(S + os.linesep)
-#file.write(A + os.linesep)
-file.write(B + os.linesep)
-file.write(C + os.linesep)
-file.close()
+	with open("firewall.sh", "w") as file:
+		for line in lines:
+			file.write(line)
+def crearFicher():
+	
+	if os.path.isfile('firewall.sh'):
+		print('Existeix firewall.sh')	
+	else:
+		N="iptables -F"
+		B="iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT"
+		C="iptables -A INPUT -j DROP"
+		
+		#Escritura
+		file = open("firewall.sh","w")
+		file.write(N + os.linesep)
+		file.write(B + os.linesep)
+		file.write(C + os.linesep)
+		file.close()
 
 principi(0)
