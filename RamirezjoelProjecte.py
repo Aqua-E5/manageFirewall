@@ -10,42 +10,10 @@ def menu(salida):
 	txtPorts.insert(END, salida)
 	txtPorts.config(state=DISABLED)
 	txtPorts.pack() 
-#	mb = Menu(root)
-#	root.config(menu=mb)
-#
-#	S = Menu(mb)
-#	Pmenu = Menu(mb)
-#	Bmenu = Menu(mb)
-#	Hmenu = Menu(mb)
-#
-#	S = Menu(mb, tearoff=0)
-#	S.add_command(label="Intern")
-#	S.add_command(label="Extern")
-#
-#	Pmenu = Menu(mb, tearoff=0)
-#	Pmenu.add_command(label="Direccions ip")
-#	Pmenu.add_command(label="Ports")
-#	Pmenu.add_command(label="Domini") 
-#
-#	Bmenu = Menu(mb, tearoff=0)
-#	Bmenu.add_command(label="Direccions ip")
-#	Bmenu.add_command(label="Ports")
-#	Bmenu.add_command(label="Domini")
-#
-#
-#	Hmenu = Menu(mb, tearoff=0)
-#	Hmenu.add_command(label="Ajuda")
-#	Hmenu.add_command(label="Donar")
-#	Hmenu.add_command(label="Sorti", command=root.quit)
-#
-#	mb.add_cascade(label="Permetre",menu=Pmenu)
-#	mb.add_cascade(label="Blocar",menu=Bmenu)
-#	mb.add_cascade(label="Ajuda",menu=Hmenu)
-#
 	root.mainloop()
 
 
-def principi(n):
+def principi():
 	
 	global i
 	i = Tk()
@@ -56,8 +24,6 @@ def principi(n):
 	global tusr
 	global txp
 
-#	if n == 1:
-#		finestra.destroy()
 	ip = Label(i, text="IP: ")
 	ip.pack() 
 	txip = Entry(i)
@@ -69,10 +35,9 @@ def principi(n):
 	txp = Entry(i)
 	
 	u = txip.get()
-#	ok = Button(i, text="Fet", command=conecta)
 	ports = Button(i, text='Ports oberts', command=llistaports) 
-	oports = Button(i, text='Obir port', command=conecta) 
-	tports = Button(i, text='Tanca port', command=conecta) 
+	oports = Button(i, text='Obir port', command=lambda: conecta('obrir')) 
+	tports = Button(i, text='Tanca port', command=lambda: conecta('tancar')) 
 		
 	
 	ip.grid(column=0, row=0, sticky="nsew")
@@ -81,7 +46,6 @@ def principi(n):
 	tusr.grid(column=1, row=1, sticky="nsew")
 	c.grid(column=0, row=2, sticky="nsew")
 	txc.grid(column=1, row=2, sticky="nsew")
-#	ok.grid(column=0, row=3, sticky="nsew")
 	ports.grid(column=0, row=3, sticky="nsew", columnspan=2)
 	
 	iport.grid(column=0, row=4, sticky="nsew")
@@ -102,8 +66,7 @@ def principi(n):
 	crearFicher()
 	i.mainloop()
 	
-def conecta():
-	
+def conecta(eleccio):
 	
 	try:
  
@@ -118,15 +81,15 @@ def conecta():
 #           ssh.connect( hostname = txip.get() , username = tusr.get() , password = txc.get())
             ssh.connect( '10.33.140.149',22, 'paco', password = txc.get())
             sftp = ssh.open_sftp()
-            obrirPort(txp.get())
+            if eleccio == 'obrir':
+                obrirPort(txp.get())
+            if eleccio == 'tancar':
+                tancarPort(txp.get())
             sftp.put('firewall.sh', '/tmp/firewall.sh')
             sftp.close()	    
 	    # Ejecutar un comando de forma remota capturando entrada, salida y error estándar
             entrada, salida, error = ssh.exec_command('sudo -S /bin/sh /tmp/firewall.sh')
             entrada.write(txc.get() + '\n')
-	    # Mostrar la salida estándar en pantalla
-            # Cerrar la conexión
-            # ssh.close()
             return ssh
 	      		
 	except:
@@ -159,18 +122,34 @@ def obrirPort(port):
 			lines[1] = "iptables -A INPUT -p tcp -m tcp --dport " + port  +  " -j ACCEPT" + os.linesep
 			for line in lines:
 				file.write(line)
+def tancarPort(port):
+	
+	if comprovarPort(port) == True:
+		# Obrim el fitxer amb mode lectura (read)	
+		with open("firewall.sh", "r") as file:
+			lines = file.readlines()	
+	
+			for idline, line in enumerate(lines):
+				if port in line:
+					print(idline)
+					lines.pop(idline)
+
+		# Obrim el fitxer amb mode  escritura (write)	
+		with open("firewall.sh", "w") as file:
+
+			for line in lines:
+				file.write(line)
+
 def crearFicher():
 	
-	if os.path.isfile('firewall.sh'):
+	if not os.path.isfile('firewall.sh'):
 		
-		print('Ja existeix')
-	else:
 		N="iptables -F"
 		H= "iptables -A INPUT -p tcp -m tcp --dport 22 -j ACCEPT" 
 		B="iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT"
 		C="iptables -A INPUT -j DROP"
 				
-		#Escritura
+		# Escritura
 		file = open("firewall.sh","w")
 		file.write(N + os.linesep)
 		file.write(H + os.linesep)
@@ -189,9 +168,4 @@ def comprovarPort(port):
 				return True
 	return False		
 
-principi(0)
-
-
-
-
-
+principi()
