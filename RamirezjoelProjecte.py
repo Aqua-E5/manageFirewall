@@ -54,20 +54,25 @@ def principi(n):
 	global txip
 	global txc
 	global tusr
+	global txp
 
 #	if n == 1:
 #		finestra.destroy()
 	ip = Label(i, text="IP: ")
 	ip.pack() 
-	txip = Entry(i,)
+	txip = Entry(i)
 	usr = Label(i, text="Usuari: ")
 	tusr = Entry(i)
 	c = Label(i, text="Contrasenya: ")
 	txc = Entry(i,show="*")
+	iport = Label(i, text="Port: ")
+	txp = Entry(i)
 	
 	u = txip.get()
-	ok = Button(i, text="Fet", command=conecta)
+#	ok = Button(i, text="Fet", command=conecta)
 	ports = Button(i, text='Ports oberts', command=llistaports) 
+	oports = Button(i, text='Obir port', command=conecta) 
+	tports = Button(i, text='Tanca port', command=conecta) 
 		
 	
 	ip.grid(column=0, row=0, sticky="nsew")
@@ -76,13 +81,21 @@ def principi(n):
 	tusr.grid(column=1, row=1, sticky="nsew")
 	c.grid(column=0, row=2, sticky="nsew")
 	txc.grid(column=1, row=2, sticky="nsew")
-	ok.grid(column=0, row=3, sticky="nsew")
-	ports.grid(column=1, row=3, sticky="nsew")
+#	ok.grid(column=0, row=3, sticky="nsew")
+	ports.grid(column=0, row=3, sticky="nsew", columnspan=2)
+	
+	iport.grid(column=0, row=4, sticky="nsew")
+	txp.grid(column=1, row=4, sticky="nsew")
+	
+	oports.grid(column=0, row=5, sticky="nsew")
+	tports.grid(column=1, row=5, sticky="nsew")
 
 	Grid.rowconfigure(i, 0, weight=1)
 	Grid.rowconfigure(i, 1, weight=1)
 	Grid.rowconfigure(i, 2, weight=1)
 	Grid.rowconfigure(i, 3, weight=1)
+	Grid.rowconfigure(i, 4, weight=1)
+	Grid.rowconfigure(i, 5, weight=1)
 	Grid.columnconfigure(i, 0, weight=1)
 	Grid.columnconfigure(i, 1, weight=1)
 
@@ -90,6 +103,7 @@ def principi(n):
 	i.mainloop()
 	
 def conecta():
+	
 	
 	try:
  
@@ -101,8 +115,9 @@ def conecta():
 
             ssh.load_system_host_keys()
 
-#            ssh.connect( hostname = txip.get() , username = tusr.get() , password = txc.get())
+#           ssh.connect( hostname = txip.get() , username = tusr.get() , password = txc.get())
             ssh.connect( '10.33.140.149',22, 'paco', password = txc.get())
+            print(txp.get())
             sftp = ssh.open_sftp()
             obrirPort('80')
             sftp.put('firewall.sh', '/tmp/firewall.sh')
@@ -114,7 +129,7 @@ def conecta():
             # Cerrar la conexión
             # ssh.close()
             return ssh
-	     		
+	      		
 	except:
 
             sys.exit(1)
@@ -152,12 +167,14 @@ def crearFicher():
 		print('Ja existeix')
 	else:
 		N="iptables -F"
+		H= "iptables -A INPUT -p tcp -m tcp --dport 22 -j ACCEPT" 
 		B="iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT"
 		C="iptables -A INPUT -j DROP"
 				
 		#Escritura
 		file = open("firewall.sh","w")
 		file.write(N + os.linesep)
+		file.write(H + os.linesep)
 		file.write(B + os.linesep)
 		file.write(C + os.linesep)
 		file.close()
