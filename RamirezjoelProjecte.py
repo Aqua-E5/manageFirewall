@@ -117,9 +117,8 @@ def conecta():
 
 #           ssh.connect( hostname = txip.get() , username = tusr.get() , password = txc.get())
             ssh.connect( '10.33.140.149',22, 'paco', password = txc.get())
-            print(txp.get())
             sftp = ssh.open_sftp()
-            obrirPort('80')
+            obrirPort(txp.get())
             sftp.put('firewall.sh', '/tmp/firewall.sh')
             sftp.close()	    
 	    # Ejecutar un comando de forma remota capturando entrada, salida y error estándar
